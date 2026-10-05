@@ -1,0 +1,15 @@
+Flask==3.1.3
+Flask-Cors==6.0.5
+Werkzeug==3.1.7
+nltk==3.10.2
+spacy==3.7.5
+scikit-learn==1.8.0
+joblib==1.5.3
+
+# spaCy's small English model isn't distributed on PyPI itself, so it's
+# installed via its direct wheel URL below. Including it here means a
+# single `pip install -r requirements.txt` sets up everything - no
+# separate manual download command needed, and no dependence on
+# spaCy's own downloader (which some networks/firewalls block) at
+# runtime.
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl

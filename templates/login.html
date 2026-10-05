@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login | MediAssist AI</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-icon">⚕</div>
+      <h1>MediAssist AI</h1>
+      <p>Log in to your patient account</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.login') }}">
+      <div class="form-group">
+        <label>Username or Email</label>
+        <input type="text" name="username" class="form-control" required autofocus>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Log In</button>
+    </form>
+
+    <div class="auth-footer">
+      Don't have an account? <a href="{{ url_for('auth.register') }}" style="color:var(--primary);font-weight:700;">Register here</a>
+    </div>
+
+    <div class="demo-creds">
+      <b>Demo credentials</b><br>
+      Patient: <code>john_doe</code> / <code>Passw0rd!</code><br>
+      Admin: <code>admin</code> / <code>Passw0rd!</code>
+    </div>
+  </div>
+</div>
+</body>
+</html>

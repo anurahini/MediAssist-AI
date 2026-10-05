@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Departments{% endblock %}
+{% block page_title %}Departments{% endblock %}
+{% block content %}
+<p class="section-sub">Explore our hospital departments, services, timings and locations.</p>
+
+<div class="grid grid-3">
+  {% for d in departments %}
+  <div class="dept-card">
+    <h3>{{ d.name }}</h3>
+    <p class="text-muted" style="font-size:13.5px;">{{ d.description }}</p>
+    <div class="dept-meta">📍 {{ d.location }}</div>
+    <div class="dept-meta">🕐 {{ d.timings }}</div>
+    <div class="dept-meta">☎ Ext. {{ d.contact_ext }}</div>
+    <div class="dept-meta">🩺 {{ d.doctor_count }} doctor(s) available</div>
+    <div class="mt-2" style="font-size:12.5px;">
+      {% for s in d.services.split(',') %}
+        <span class="entity-tag">{{ s.strip() }}</span>
+      {% endfor %}
+    </div>
+    <a href="{{ url_for('doctors.list_doctors', department=d.name) }}" class="btn btn-outline btn-sm btn-block mt-2">View Doctors</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

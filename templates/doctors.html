@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Doctors{% endblock %}
+{% block page_title %}Doctors{% endblock %}
+{% block content %}
+<p class="section-sub">Browse our specialists by department, or search by name.</p>
+
+<form method="GET" class="filters-bar">
+  <input type="text" name="q" class="form-control" placeholder="Search doctor name or specialization..." value="{{ search }}">
+  <select name="department" class="form-control">
+    <option value="">All Departments</option>
+    {% for d in departments %}
+      <option value="{{ d.name }}" {{ 'selected' if d.name == selected_dept }}>{{ d.name }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-primary">Filter</button>
+  {% if search or selected_dept %}
+  <a href="{{ url_for('doctors.list_doctors') }}" class="btn btn-outline">Clear</a>
+  {% endif %}
+</form>
+
+{% if doctors %}
+<div class="grid grid-3">
+  {% for doc in doctors %}
+  <div class="doctor-card">
+    <div class="doc-avatar">{{ doc.full_name.replace('Dr. ','')[0] }}</div>
+    <h3>{{ doc.full_name }}</h3>
+    <div class="doc-spec">{{ doc.specialization }}</div>
+    <div class="doc-meta">🏢 {{ doc.department_name }}</div>
+    <div class="doc-meta">🎓 {{ doc.qualification }} · {{ doc.experience_years }} yrs exp.</div>
+    <div class="doc-meta">📅 {{ doc.available_days }}</div>
+    <div class="doc-meta">🕐 {{ doc.available_time }}</div>
+    <div class="doc-meta">⭐ {{ doc.rating }} / 5.0 · Room {{ doc.room_no }}</div>
+    <div class="doc-fee">Consultation Fee: ₹{{ doc.consultation_fee | int }}</div>
+    <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-primary btn-sm btn-block mt-2">Book Appointment</a>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state"><div class="icon">🩺</div><p>No doctors found matching your filters.</p></div>
+{% endif %}
+{% endblock %}

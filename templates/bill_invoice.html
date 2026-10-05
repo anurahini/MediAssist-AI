@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Official Bill Invoice #{{ bill.bill_id }} - MediAssist AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --dark: #0f172a;
+      --text: #334155;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #16a34a;
+      --danger: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f1f5f9;
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 14px;
+      padding: 20px 10px;
+    }
+
+    .no-print-toolbar {
+      max-width: 750px;
+      margin: 0 auto 20px auto;
+      background: #ffffff;
+      padding: 14px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--border);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13.5px;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: #f1f5f9; color: var(--dark); border: 1px solid #cbd5e1; }
+
+    .invoice-card {
+      max-width: 750px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+
+    .inv-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+
+    .inv-title { font-size: 20px; font-weight: 800; color: var(--dark); }
+    .inv-sub { font-size: 12px; color: var(--text-muted); }
+
+    .inv-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      background: #f8fafc;
+      padding: 18px 20px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 24px;
+    }
+
+    .inv-box-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    .inv-box-val { font-size: 14.5px; font-weight: 700; color: var(--dark); margin-top: 2px; }
+
+    .inv-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    .inv-table th { background: #f1f5f9; padding: 10px; text-align: left; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid var(--border); }
+    .inv-table td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .status-paid { background: #dcfce7; color: #15803d; }
+    .status-unpaid { background: #fee2e2; color: #b91c1c; }
+
+    .inv-total-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 30px;
+      align-items: center;
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 2px solid var(--dark);
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .no-print-toolbar { display: none; }
+      .invoice-card { box-shadow: none; border: none; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="no-print-toolbar">
+    <a href="{{ url_for('billing.bills_page', patient_id=patient.patient_id) }}" class="btn btn-secondary">← Back to Billing</a>
+    <span style="font-weight:700;">Official Billing Invoice & Receipt</span>
+    <button onclick="window.print()" class="btn btn-primary">🖨️ Print Invoice</button>
+  </div>
+
+  <div class="invoice-card">
+    <div class="inv-header">
+      <div>
+        <div class="inv-title">MediAssist AI Hospital</div>
+        <div class="inv-sub">100 Healthcare Blvd, Suite 400</div>
+        <div class="inv-sub">Phone: +1 (800) 555-MEDI | Tax ID: TAX-883920</div>
+      </div>
+      <div style="text-align: right;">
+        <span class="status-badge status-{{ bill.status }}">{{ bill.status }}</span>
+        <div style="margin-top: 8px; font-weight:700; font-size:15px; color: var(--dark);">INVOICE #INV-{{ bill.bill_id }}</div>
+        <div class="inv-sub">Issued Date: {{ bill.date_issued }}</div>
+      </div>
+    </div>
+
+    <div class="inv-grid">
+      <div>
+        <div class="inv-box-label">Billed To (Patient)</div>
+        <div class="inv-box-val">{{ patient.full_name }}</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+          Patient ID: #{{ patient.patient_id }}<br>
+          Phone: {{ patient.phone or 'N/A' }} | Email: {{ patient.email or 'N/A' }}
+        </div>
+      </div>
+      <div>
+        <div class="inv-box-label">Payment & Insurance Details</div>
+        <div class="inv-box-val">Category: {{ bill.category | capitalize }}</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+          Insurance Covered: {{ 'Yes (' + (bill.insurance_provider or 'Standard Provider') + ')' if bill.insurance_covered else 'No' }}<br>
+          Due Date: {{ bill.due_date or 'Immediate' }}
+        </div>
+      </div>
+    </div>
+
+    <table class="inv-table">
+      <thead>
+        <tr>
+          <th>Service Description</th>
+          <th>Category</th>
+          <th style="text-align: right;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>{{ bill.description }}</b></td>
+          <td>{{ bill.category | capitalize }}</td>
+          <td style="text-align: right; font-weight: 700;">₹{{ '%.2f' | format(bill.amount) }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="inv-total-row">
+      <div style="font-size: 14px; font-weight: 600; color: var(--text-muted);">TOTAL INVOICE AMOUNT:</div>
+      <div style="font-size: 24px; font-weight: 800; color: var(--primary);">₹{{ '%.2f' | format(bill.amount) }}</div>
+    </div>
+
+    {% if payments %}
+    <div style="margin-top: 30px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px;">
+      <div style="font-weight: 700; color: #166534; margin-bottom: 6px;">✅ Payment Confirmation Receipt Ledger</div>
+      {% for p in payments %}
+      <div style="font-size: 12.5px; color: #14532d; display: flex; justify-content: space-between;">
+        <span>Paid via <b>{{ p.payment_method }}</b> on {{ p.paid_at }}</span>
+        <span style="font-weight:700;">₹{{ '%.2f' | format(p.amount_paid) }} (Payment ID: #{{ p.payment_id }})</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); text-align: center; font-size: 11px; color: var(--text-muted);">
+      Thank you for choosing MediAssist AI Hospital. For billing inquiries, please contact billing@mediassist.ai.
+    </div>
+  </div>
+
+</body>
+</html>

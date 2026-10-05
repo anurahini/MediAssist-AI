@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}NLP Demo{% endblock %}
+{% block page_title %}NLP Pipeline Demo{% endblock %}
+{% block content %}
+<p class="section-sub">Type any sentence to see every stage of the NLP pipeline that powers the MediAssist AI chatbot.</p>
+
+<div class="card">
+  <div class="form-group">
+    <label>Try a sentence</label>
+    <div class="flex gap-2">
+      <input type="text" id="nlpInput" class="form-control" placeholder="e.g. I need a heart doctor, book Arun tomorrow" value="I am having severe chest pain and I feel scared">
+      <button id="nlpRunBtn" class="btn btn-primary" style="white-space:nowrap;">Analyze</button>
+    </div>
+    <div class="flex gap-2 mt-2" style="flex-wrap:wrap;">
+      <span class="chip" data-sample="I need a heart doctor">I need a heart doctor</span>
+      <span class="chip" data-sample="Book Arun tomorrow morning">Book Arun tomorrow morning</span>
+      <span class="chip" data-sample="I am having severe chest pain">Severe chest pain</span>
+      <span class="chip" data-sample="Thank you so much for your help">Thank you so much</span>
+      <span class="chip" data-sample="What are the visiting hours?">Visiting hours?</span>
+    </div>
+  </div>
+</div>
+
+<div id="nlpResults" style="display:none;">
+  <div class="grid grid-2 mt-3">
+    <div class="card">
+      <h4 style="font-size:15px;margin-bottom:14px;">1️⃣ Tokenization</h4>
+      <div class="token-list" id="rTokens"></div>
+    </div>
+    <div class="card">
+      <h4 style="font-size:15px;margin-bottom:14px;">2️⃣ Stopword Removal</h4>
+      <div class="token-list" id="rNoStop"></div>
+    </div>
+    <div class="card">
+      <h4 style="font-size:15px;margin-bottom:14px;">3️⃣ Stemming (Porter)</h4>
+      <div class="token-list" id="rStemmed"></div>
+    </div>
+    <div class="card">
+      <h4 style="font-size:15px;margin-bottom:14px;">4️⃣ Lemmatization (WordNet)</h4>
+      <div class="token-list" id="rLemmatized"></div>
+    </div>
+  </div>
+
+  <div class="card mt-3">
+    <h4 style="font-size:15px;margin-bottom:14px;">5️⃣ POS Tagging</h4>
+    <div class="token-list" id="rPos"></div>
+  </div>
+
+  <div class="grid grid-2 mt-3">
+    <div class="card">
+      <h4 style="font-size:15px;margin-bottom:14px;">6️⃣ Named Entity Recognition</h4>
+      <div id="rEntities"></div>
+    </div>
+    <div class="card">
+      <h4 style="font-size:15px;margin-bottom:14px;">7️⃣ Sentiment Analysis</h4>
+      <div id="rSentiment"></div>
+    </div>
+  </div>
+
+  <div class="card mt-3">
+    <h4 style="font-size:15px;margin-bottom:14px;">8️⃣ Intent Classification (TF-IDF + Logistic Regression)</h4>
+    <div id="rIntent"></div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script>
+const runBtn = document.getElementById('nlpRunBtn');
+const input = document.getElementById('nlpInput');
+const results = document.getElementById('nlpResults');
+
+function renderTokens(el, tokens) {
+  el.innerHTML = '';
+  tokens.forEach(t => {
+    const span = document.createElement('span');
+    span.className = 'token-chip';
+    span.textContent = t;
+    el.appendChild(span);
+  });
+  if (tokens.length === 0) el.innerHTML = '<span class="text-muted">—</span>';
+}
+
+async function runAnalysis(text) {
+  runBtn.disabled = true;
+  runBtn.textContent = 'Analyzing...';
+  try {
+    const resp = await fetch('/api/nlp-demo', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text: text})
+    });
+    const data = await resp.json();
+    if (data.error) { alert(data.error); return; }
+
+    results.style.display = 'block';
+    renderTokens(document.getElementById('rTokens'), data.pipeline.tokens);
+    renderTokens(document.getElementById('rNoStop'), data.pipeline.tokens_no_stopwords);
+    renderTokens(document.getElementById('rStemmed'), data.pipeline.stemmed_tokens);
+    renderTokens(document.getElementById('rLemmatized'), data.pipeline.lemmatized_tokens);
+
+    const posBox = document.getElementById('rPos');
+    posBox.innerHTML = '';
+    data.pipeline.pos_tags.forEach(p => {
+      const span = document.createElement('span');
+      span.className = 'token-chip pos-chip';
+      span.innerHTML = p.word + '<span class="pos-tag-sub">' + p.tag + '</span>';
+      posBox.appendChild(span);
+    });
+
+    const entBox = document.getElementById('rEntities');
+    entBox.innerHTML = '';
+    const ents = data.entities;
+    const groups = [
+      ['spaCy Entities', (ents.spacy_entities || []).map(e => e.text + ' (' + e.label + ')')],
+      ['Doctors', (ents.doctors || []).map(d => d.full_name)],
+      ['Departments', (ents.departments || []).map(d => d.name)],
+      ['Medicines', (ents.medicines || []).map(d => d.name)],
+      ['Symptoms', ents.symptoms || []],
+      ['Dates', (ents.dates || []).map(d => d.text + ' → ' + (d.resolved_date || '?'))],
+      ['Times', ents.times || []],
+      ['Emergency Signals', ents.emergency_signals || []],
+    ];
+    groups.forEach(([label, items]) => {
+      const row = document.createElement('div');
+      row.className = 'nlp-section';
+      row.innerHTML = '<h4>' + label + '</h4>' + (items.length ?
+        items.map(i => '<span class="entity-tag">' + i + '</span>').join('') :
+        '<span class="text-muted" style="font-size:12.5px;">None detected</span>');
+      entBox.appendChild(row);
+    });
+
+    const sentBox = document.getElementById('rSentiment');
+    const s = data.sentiment;
+    sentBox.innerHTML = `
+      <div class="debug-row"><span class="debug-label">Label</span><span class="debug-value">${s.label}</span></div>
+      <div class="debug-row"><span class="debug-label">Compound Score</span><span class="debug-value">${s.compound}</span></div>
+      <div class="debug-row"><span class="debug-label">Positive</span><span class="debug-value">${s.positive}</span></div>
+      <div class="debug-row"><span class="debug-label">Neutral</span><span class="debug-value">${s.neutral}</span></div>
+      <div class="debug-row"><span class="debug-label">Negative</span><span class="debug-value">${s.negative}</span></div>
+    `;
+
+    const intentBox = document.getElementById('rIntent');
+    const it = data.intent;
+    intentBox.innerHTML = `
+      <div class="debug-row"><span class="debug-label">Top Intent</span><span class="debug-value">${it.intent}</span></div>
+      <div class="debug-row"><span class="debug-label">Routed Agent</span><span class="debug-value">${it.agent}</span></div>
+      <div class="debug-row"><span class="debug-label">Confidence</span><span class="debug-value">${it.confidence}%</span></div>
+      <div class="confidence-bar mt-2"><div class="confidence-bar-fill" style="width:${it.confidence}%;"></div></div>
+      <h4 class="mt-3" style="font-size:12.5px;color:var(--text-muted);text-transform:uppercase;">Top 3 Candidates</h4>
+      <div class="token-list mt-2">
+        ${it.top_intents.map(ti => '<span class="token-chip">' + ti.intent + ' (' + ti.confidence + '%)</span>').join('')}
+      </div>
+    `;
+  } catch (e) {
+    alert('Error running NLP analysis.');
+  } finally {
+    runBtn.disabled = false;
+    runBtn.textContent = 'Analyze';
+  }
+}
+
+runBtn.addEventListener('click', () => runAnalysis(input.value));
+input.addEventListener('keypress', (e) => { if (e.key === 'Enter') runAnalysis(input.value); });
+document.querySelectorAll('.chip').forEach(c => {
+  c.addEventListener('click', () => { input.value = c.getAttribute('data-sample'); runAnalysis(input.value); });
+});
+
+// Run once on load with the default example
+runAnalysis(input.value);
+</script>
+{% endblock %}

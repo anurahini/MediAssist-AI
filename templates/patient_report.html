@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Medical & Financial Report - {{ patient.full_name }} (#{{ patient.patient_id }})</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --accent: #0d9488;
+      --dark: #0f172a;
+      --text: #334155;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --bg: #f8fafc;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f1f5f9;
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 14px;
+      padding: 20px 10px;
+    }
+
+    /* Floating Toolbar */
+    .no-print-toolbar {
+      max-width: 900px;
+      margin: 0 auto 20px auto;
+      background: #ffffff;
+      padding: 14px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13.5px;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: var(--dark);
+      border: 1px solid #cbd5e1;
+    }
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+    .btn-success:hover {
+      background: #15803d;
+    }
+
+    /* Main Report Card */
+    .report-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    /* Hospital Letterhead Header */
+    .hospital-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 20px;
+      margin-bottom: 25px;
+    }
+
+    .hospital-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-icon {
+      width: 54px;
+      height: 54px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+
+    .hospital-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--dark);
+      letter-spacing: -0.5px;
+    }
+
+    .hospital-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .report-meta {
+      text-align: right;
+    }
+
+    .report-badge {
+      display: inline-block;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 12px;
+      margin-bottom: 6px;
+      border: 1px solid #bae6fd;
+    }
+
+    .report-meta-text {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* Section Titles */
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 25px 0 12px 0;
+      padding-bottom: 6px;
+      border-bottom: 1.5px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Patient Demographics Box */
+    .demographics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      background: #f8fafc;
+      padding: 18px 20px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 20px;
+    }
+
+    .demo-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .demo-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .demo-val {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--dark);
+      margin-top: 2px;
+    }
+
+    /* Data Tables */
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .report-table th {
+      background: #f1f5f9;
+      color: var(--dark);
+      font-weight: 700;
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 2px solid var(--border);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .report-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      color: var(--text);
+    }
+
+    .report-table tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    /* Status Badges */
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .badge-paid, .badge-ready, .badge-completed {
+      background: #dcfce7;
+      color: #15803d;
+    }
+    .badge-unpaid, .badge-pending {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .badge-processing {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    /* Financial Summary Box */
+    .financial-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .fin-card {
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      text-align: center;
+      background: #ffffff;
+    }
+
+    .fin-card.dues {
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    .fin-val {
+      font-size: 20px;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    .fin-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Footer & Signatures */
+    .report-footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1.5px dashed var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .verification-block {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .qr-placeholder {
+      width: 64px;
+      height: 64px;
+      background: #0f172a;
+      padding: 4px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 9.5px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .signature-block {
+      text-align: center;
+      min-width: 180px;
+    }
+
+    .sig-line {
+      border-bottom: 1px solid var(--dark);
+      margin-bottom: 6px;
+      height: 40px;
+      position: relative;
+    }
+
+    .sig-stamp {
+      position: absolute;
+      bottom: 2px;
+      right: 20px;
+      border: 2px solid #0284c7;
+      color: #0284c7;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      transform: rotate(-8deg);
+      opacity: 0.85;
+    }
+
+    .sig-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .sig-sub {
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+
+    /* Print CSS rules */
+    @media print {
+      body {
+        background: #ffffff !important;
+        padding: 0 !important;
+      }
+      .no-print-toolbar {
+        display: none !important;
+      }
+      .report-container {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+      .report-table th {
+        background: #e2e8f0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .report-badge, .badge {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Toolbar for Actions -->
+  <div class="no-print-toolbar">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <a href="{{ url_for('patient.medical_history', patient_id=patient.patient_id) }}" class="btn btn-secondary">
+        ← Back to History
+      </a>
+      <span style="font-weight: 700; color: var(--dark);">Patient Comprehensive Medical & Billing Report</span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      {% if total_unpaid > 0 %}
+        <a href="{{ url_for('billing.bills_page', patient_id=patient.patient_id) }}" class="btn btn-success">
+          💳 Pay Outstanding Dues (₹{{ '%.2f' | format(total_unpaid) }})
+        </a>
+      {% endif %}
+      <button onclick="window.print()" class="btn btn-primary">
+        🖨️ Print / Save as PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Printable Report Body -->
+  <div class="report-container">
+    
+    <!-- Letterhead -->
+    <div class="hospital-header">
+      <div class="hospital-brand">
+        <div class="logo-icon">🏥</div>
+        <div>
+          <div class="hospital-title">MediAssist AI Hospital</div>
+          <div class="hospital-subtitle">Advanced Multi-Agent Healthcare & Medical Center</div>
+          <div class="hospital-subtitle">100 Healthcare Boulevard, Suite 400 · Contact: +1 (800) 555-MEDI</div>
+        </div>
+      </div>
+      <div class="report-meta">
+        <span class="report-badge">OFFICIAL MEDICAL REPORT</span>
+        <div class="report-meta-text">Report ID: <b>RPT-{{ patient.patient_id }}-{{ now_year }}</b></div>
+        <div class="report-meta-text">Generated: <b>{{ generated_at }}</b></div>
+      </div>
+    </div>
+
+    <!-- Patient Demographics Header -->
+    <div class="section-title">
+      <span>👤</span> Patient Demographics & Profile Summary
+    </div>
+    <div class="demographics-grid">
+      <div class="demo-item">
+        <span class="demo-label">Patient Name</span>
+        <span class="demo-val">{{ patient.full_name }}</span>
+      </div>
+      <div class="demo-item">
+        <span class="demo-label">Patient ID</span>
+        <span class="demo-val">#{{ patient.patient_id }}</span>
+      </div>
+      <div class="demo-item">
+        <span class="demo-label">Date of Birth / Gender</span>
+        <span class="demo-val">{{ patient.date_of_birth or 'N/A' }} ({{ patient.gender or 'N/A' | capitalize }})</span>
+      </div>
+      <div class="demo-item">
+        <span class="demo-label">Blood Group</span>
+        <span class="demo-val" style="color: var(--danger);">{{ patient.blood_group or 'N/A' }}</span>
+      </div>
+      <div class="demo-item">
+        <span class="demo-label">Phone / Email</span>
+        <span class="demo-val">{{ patient.phone or 'N/A' }}</span>
+        <span style="font-size: 11px; color: var(--text-muted);">{{ patient.email or 'N/A' }}</span>
+      </div>
+      <div class="demo-item">
+        <span class="demo-label">Emergency Contact</span>
+        <span class="demo-val">{{ patient.emergency_contact or 'N/A' }}</span>
+      </div>
+    </div>
+
+    <!-- Consultations & Diagnoses -->
+    <div class="section-title">
+      <span>🩺</span> Doctor Consultations & Clinical Visits History
+    </div>
+    {% if appointments %}
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Date & Time</th>
+          <th>Attending Doctor</th>
+          <th>Department</th>
+          <th>Symptoms / Chief Complaint</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in appointments %}
+        <tr>
+          <td><b>{{ a.appointment_date }}</b> <span style="font-size: 11px; color: var(--text-muted);">{{ a.appointment_time }}</span></td>
+          <td><b>Dr. {{ a.doctor_name }}</b><br><span style="font-size: 11px; color: var(--text-muted);">{{ a.specialization }}</span></td>
+          <td>{{ a.department_name }}</td>
+          <td>{{ a.reason or 'Routine Checkup / Consultation' }}</td>
+          <td><span class="badge badge-{{ a.status }}">{{ a.status }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="font-size: 12.5px; color: var(--text-muted); font-style: italic;">No clinical consultation records found.</p>
+    {% endif %}
+
+    <!-- Prescriptions -->
+    <div class="section-title">
+      <span>📋</span> Prescribed Medications & Dosage Instructions
+    </div>
+    {% if prescriptions %}
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Date Issued</th>
+          <th>Prescribing Doctor</th>
+          <th>Medicines & Dosage</th>
+          <th>Instructions & Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in prescriptions %}
+        <tr>
+          <td><b>{{ p.date_issued }}</b></td>
+          <td><b>Dr. {{ p.doctor_name }}</b></td>
+          <td><span style="font-weight: 600; color: var(--primary-dark);">{{ p.medicines }}</span></td>
+          <td>{{ p.notes or 'As directed by physician' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="font-size: 12.5px; color: var(--text-muted); font-style: italic;">No prescription records on file.</p>
+    {% endif %}
+
+    <!-- Lab Reports -->
+    <div class="section-title">
+      <span>🧪</span> Diagnostic & Laboratory Test Results
+    </div>
+    {% if lab_reports %}
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Booked Date</th>
+          <th>Test Name</th>
+          <th>Category</th>
+          <th>Result Summary / Clinical Impression</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in lab_reports %}
+        <tr>
+          <td><b>{{ r.booked_date }}</b></td>
+          <td><b>{{ r.test_name }}</b></td>
+          <td>{{ r.test_category }}</td>
+          <td>{{ r.result_summary or 'Awaiting final lab analyst review' }}</td>
+          <td><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="font-size: 12.5px; color: var(--text-muted); font-style: italic;">No diagnostic lab reports recorded.</p>
+    {% endif %}
+
+    <!-- Financial & Billing Summary -->
+    <div class="section-title">
+      <span>💳</span> Financial Billing Summary & Payment Ledger
+    </div>
+
+    <div class="financial-summary-grid">
+      <div class="fin-card">
+        <div class="fin-label">TOTAL BILLED AMOUNT</div>
+        <div class="fin-val" style="color: var(--dark);">₹{{ '%.2f' | format(total_billed) }}</div>
+      </div>
+      <div class="fin-card">
+        <div class="fin-label">TOTAL PAID AMOUNT</div>
+        <div class="fin-val" style="color: var(--success);">₹{{ '%.2f' | format(total_paid) }}</div>
+      </div>
+      <div class="fin-card dues">
+        <div class="fin-label">OUTSTANDING BALANCE DUE</div>
+        <div class="fin-val" style="color: {% if total_unpaid > 0 %}var(--danger){% else %}var(--success){% endif %};">
+          ₹{{ '%.2f' | format(total_unpaid) }}
+        </div>
+      </div>
+    </div>
+
+    {% if bills %}
+    <table class="report-table" style="margin-top: 14px;">
+      <thead>
+        <tr>
+          <th>Bill ID</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Date Issued</th>
+          <th>Amount</th>
+          <th>Insurance</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bills %}
+        <tr>
+          <td><b>#{{ b.bill_id }}</b></td>
+          <td>{{ b.description }}</td>
+          <td>{{ b.category | capitalize }}</td>
+          <td>{{ b.date_issued }}</td>
+          <td><b>₹{{ '%.2f' | format(b.amount) }}</b></td>
+          <td>{{ b.insurance_provider or '—' }}</td>
+          <td><span class="badge badge-{{ b.status }}">{{ b.status }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if payments %}
+    <div style="font-size: 13px; font-weight: 700; color: var(--dark); margin-top: 18px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+      <span>🧾</span> Recorded Payment Transactions & Receipts Ledger
+    </div>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Payment ID</th>
+          <th>Bill Description</th>
+          <th>Amount Paid</th>
+          <th>Method</th>
+          <th>Paid Timestamp</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td><b>#{{ p.payment_id }}</b></td>
+          <td>{{ p.bill_description }}</td>
+          <td><b style="color: var(--success);">₹{{ '%.2f' | format(p.amount_paid) }}</b></td>
+          <td><span class="badge badge-paid">{{ p.payment_method }}</span></td>
+          <td>{{ p.paid_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    <!-- Footer Verification and Signatures -->
+    <div class="report-footer">
+      <div class="verification-block">
+        <div class="qr-placeholder">
+          [QR VERIFIED]
+        </div>
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--dark);">Digital Audit Stamp</div>
+          <div style="font-size: 10.5px; color: var(--text-muted);">Verified by MediAssist AI Engine</div>
+          <div style="font-size: 10px; color: var(--text-muted);">Checksum: SEC-{{ patient.patient_id }}-8892A</div>
+        </div>
+      </div>
+      <div class="signature-block">
+        <div class="sig-line">
+          <div class="sig-stamp">OFFICIALLY SIGNED</div>
+        </div>
+        <div class="sig-label">Authorized Officer</div>
+        <div class="sig-sub">Medical Records & Billing Dept</div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

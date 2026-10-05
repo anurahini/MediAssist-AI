@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Patient Bill & Payment History{% endblock %}
+{% block page_title %}Patient Bill & Payment History{% endblock %}
+{% block content %}
+<div class="card mb-3" style="background: linear-gradient(135deg, #f0fdfa, #e0f2fe); border: 1px solid #cbd5e1;">
+  <div class="card-header" style="border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 12px;">
+    <h3 style="color: var(--primary-dark); display: flex; align-items: center; gap: 8px;">
+      <span>💳</span> Billing & Payment History Lookup
+    </h3>
+    <span class="text-muted" style="font-size: 13px;">Select or search any patient to view their previous bills, dues, and payment transaction history</span>
+  </div>
+  <form method="GET" action="{{ url_for('billing.bills_page') }}" class="filters-bar" style="margin-top: 14px; gap: 12px; align-items: center;">
+    <div style="flex: 1; min-width: 220px;">
+      <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">SELECT PATIENT:</label>
+      <select name="patient_id" class="form-control" onchange="this.form.submit()">
+        {% for p in all_patients %}
+          <option value="{{ p.patient_id }}" {% if selected_patient_id == p.patient_id %}selected{% endif %}>
+            Patient #{{ p.patient_id }} - {{ p.full_name }} ({{ p.phone or p.email }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="flex: 1; min-width: 220px;">
+      <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">SEARCH BY NAME / ID / PHONE:</label>
+      <input type="text" name="q" value="{{ search_query }}" placeholder="e.g. John Doe, 1, or 98765..." class="form-control">
+    </div>
+    <div style="margin-top: 18px;">
+      <button type="submit" class="btn btn-primary">Search Dues & Bills</button>
+    </div>
+  </form>
+</div>
+
+{% if patient %}
+<div class="card mb-3" style="border-left: 5px solid var(--primary);">
+  <div class="flex-between" style="flex-wrap: wrap; gap: 12px; align-items: center;">
+    <div>
+      <span class="badge badge-completed" style="font-size: 13px;">Patient ID: #{{ patient.patient_id }}</span>
+      <h2 style="margin: 6px 0 2px; color: var(--text);">{{ patient.full_name }}</h2>
+      <p class="text-muted" style="margin: 0; font-size: 13.5px;">
+        📧 {{ patient.email or 'N/A' }} | 📞 {{ patient.phone or 'N/A' }} | 🩸 Blood Group: {{ patient.blood_group or 'N/A' }}
+      </p>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <a href="{{ url_for('patient.generate_report', patient_id=patient.patient_id) }}" target="_blank" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0d9488); border: none; font-weight: 700;">
+        📄 Generate Full Patient Report
+      </a>
+      <span class="badge badge-rescheduled" style="font-size: 13px;">Username: @{{ patient.username }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-4 mb-3">
+  <div class="stat-card">
+    <div class="stat-icon">💳</div>
+    <div class="stat-value" style="color: {% if total_unpaid > 0 %}var(--danger){% else %}var(--success){% endif %};">
+      ₹{{ '%.2f' | format(total_unpaid) }}
+    </div>
+    <div class="stat-label">Total Outstanding Dues</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🧾</div>
+    <div class="stat-value">₹{{ '%.2f' | format(total_billed) }}</div>
+    <div class="stat-label">Total Billed (All Time)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">✅</div>
+    <div class="stat-value" style="color: var(--success);">₹{{ '%.2f' | format(total_paid) }}</div>
+    <div class="stat-label">Total Paid</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📊</div>
+    <div class="stat-value" style="font-size:13.5px; line-height: 1.4;">
+      Consult ₹{{ '%.0f' | format(breakdown.consultation) }}<br>
+      Lab ₹{{ '%.0f' | format(breakdown.lab) }} ·
+      Pharmacy ₹{{ '%.0f' | format(breakdown.pharmacy) }}
+    </div>
+    <div class="stat-label">Charges Breakdown</div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header flex-between">
+    <h3>📄 Previous Bills & Invoices</h3>
+    <a href="{{ url_for('patient.generate_report', patient_id=patient.patient_id) }}" target="_blank" class="btn btn-secondary btn-sm">
+      🖨️ Print Full Medical & Billing Summary Report
+    </a>
+  </div>
+  {% if bills %}
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Bill #</th>
+        <th>Description</th>
+        <th>Category</th>
+        <th>Date Issued</th>
+        <th>Amount</th>
+        <th>Insurance Provider</th>
+        <th>Status</th>
+        <th>Action & Receipts</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for b in bills %}
+      <tr>
+        <td><b>#{{ b.bill_id }}</b></td>
+        <td>{{ b.description }}</td>
+        <td><span class="badge badge-rescheduled">{{ b.category | capitalize }}</span></td>
+        <td>{{ b.date_issued }}</td>
+        <td><b>₹{{ '%.2f' | format(b.amount) }}</b></td>
+        <td>{{ b.insurance_provider or '—' }}</td>
+        <td><span class="badge badge-{{ b.status }}">{{ b.status }}</span></td>
+        <td>
+          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+            <a href="{{ url_for('billing.view_invoice', bill_id=b.bill_id) }}" target="_blank" class="btn btn-secondary btn-sm" title="View & Print Official Invoice">
+              🧾 Invoice
+            </a>
+            {% if b.status == 'unpaid' %}
+            <form method="POST" action="{{ url_for('billing.pay_bill', bill_id=b.bill_id) }}" style="display: flex; gap: 4px; align-items: center;">
+              <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+              <select name="payment_method" class="form-control" style="font-size: 11px; padding: 3px 6px; width: auto;">
+                <option value="Card">Card</option>
+                <option value="UPI / QR">UPI / QR</option>
+                <option value="Net Banking">Net Banking</option>
+                <option value="Cash">Cash</option>
+              </select>
+              <button type="submit" class="btn btn-primary btn-sm">Pay ₹{{ '%.0f' | format(b.amount) }}</button>
+            </form>
+            {% else %}
+            <span class="text-muted" style="font-size: 12px; color: var(--success); font-weight: 600;">Cleared</span>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="icon">💳</div><p>No bills on record for this patient yet.</p></div>
+  {% endif %}
+</div>
+
+
+<div class="card">
+  <div class="card-header">
+    <h3>🧾 Payment Transaction Ledger History</h3>
+  </div>
+  {% if payments %}
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Payment ID</th>
+        <th>Bill Details</th>
+        <th>Amount Paid</th>
+        <th>Payment Method</th>
+        <th>Payment Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for p in payments %}
+      <tr>
+        <td><b>#{{ p.payment_id }}</b></td>
+        <td>{{ p.bill_description }}</td>
+        <td><span style="color: var(--success); font-weight: 700;">₹{{ '%.2f' | format(p.amount_paid) }}</span></td>
+        <td><span class="badge badge-completed">{{ p.payment_method }}</span></td>
+        <td>{{ p.paid_at }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="icon">🧾</div><p>No payment transactions recorded for this patient yet.</p></div>
+  {% endif %}
+</div>
+{% else %}
+<div class="empty-state card">
+  <div class="icon">💳</div>
+  <p>No patient selected. Please use the search bar above to select a patient.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+<h2 class="section-title">Welcome back, {{ user.full_name.split(' ')[0] }} 👋</h2>
+<p class="section-sub">Here's a quick overview of your health records at MediAssist Hospital.</p>
+
+<div class="grid grid-4 mb-2">
+  <div class="stat-card">
+    <div class="stat-icon">📅</div>
+    <div class="stat-value">{{ stats.get('appointments', 0) }}</div>
+    <div class="stat-label">Upcoming Appointments</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🧪</div>
+    <div class="stat-value">{{ stats.get('reports_pending', 0) }}</div>
+    <div class="stat-label">Lab Reports Pending</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">💳</div>
+    <div class="stat-value">{{ stats.get('unpaid_bills', 0) }}</div>
+    <div class="stat-label">Unpaid Bills</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📋</div>
+    <div class="stat-value">{{ stats.get('prescriptions', 0) }}</div>
+    <div class="stat-label">Prescriptions on File</div>
+  </div>
+</div>
+
+<div class="grid grid-2 mt-3">
+  <div class="card">
+    <div class="card-header">
+      <h3>Upcoming Appointments</h3>
+      <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-outline btn-sm">View All</a>
+    </div>
+    {% if upcoming %}
+      <ul>
+      {% for a in upcoming %}
+        <li class="flex-between" style="padding:10px 0;border-bottom:1px solid var(--border);">
+          <div>
+            <b>{{ a.doctor_name }}</b><br>
+            <span class="text-muted" style="font-size:13px;">{{ a.department_name }} · {{ a.appointment_date }} at {{ a.appointment_time }}</span>
+          </div>
+          <span class="badge badge-{{ a.status }}">{{ a.status }}</span>
+        </li>
+      {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty-state">
+        <div class="icon">📅</div>
+        <p>No upcoming appointments.</p>
+        <a href="{{ url_for('chatbot.chatbot_page') }}" class="btn btn-primary btn-sm mt-2">Book via Chatbot</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Chat with MediAssist AI</h3>
+    </div>
+    <p class="text-muted">Ask me anything — find a doctor, book an appointment, check a lab report, or ask about hospital facilities.</p>
+    <a href="{{ url_for('chatbot.chatbot_page') }}" class="btn btn-primary mt-2">💬 Open Chatbot</a>
+    <div class="mt-3">
+      <h4 style="font-size:13px;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px;">Quick Links</h4>
+      <div class="flex gap-2" style="flex-wrap:wrap;">
+        <a href="{{ url_for('doctors.list_doctors') }}" class="btn btn-outline btn-sm">🩺 Doctors</a>
+        <a href="{{ url_for('lab.lab_reports') }}" class="btn btn-outline btn-sm">🧪 Lab Reports</a>
+        <a href="{{ url_for('billing.bills_page') }}" class="btn btn-outline btn-sm">💳 Bills</a>
+        <a href="{{ url_for('pharmacy.pharmacy_page') }}" class="btn btn-outline btn-sm">💊 Pharmacy</a>
+        <a href="{{ url_for('patient.medical_history') }}" class="btn btn-outline btn-sm">🗂 Medical History</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

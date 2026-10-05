@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block content %}
+<p class="section-sub">Hospital-wide overview across all agents and departments.</p>
+
+<div class="grid grid-4 mb-2">
+  <div class="stat-card"><div class="stat-icon">🧑‍🤝‍🧑</div><div class="stat-value">{{ stats.total_patients }}</div><div class="stat-label">Total Patients</div></div>
+  <div class="stat-card"><div class="stat-icon">🩺</div><div class="stat-value">{{ stats.total_doctors }}</div><div class="stat-label">Total Doctors</div></div>
+  <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value">{{ stats.total_appointments }}</div><div class="stat-label">Total Appointments</div></div>
+  <div class="stat-card"><div class="stat-icon">📌</div><div class="stat-value">{{ stats.today_appointments }}</div><div class="stat-label">Today's Appointments</div></div>
+  <div class="stat-card"><div class="stat-icon">💳</div><div class="stat-value">{{ stats.pending_bills }}</div><div class="stat-label">Pending Bills</div></div>
+  <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value">₹{{ '%.0f' | format(stats.total_revenue) }}</div><div class="stat-label">Revenue Collected</div></div>
+  <div class="stat-card"><div class="stat-icon">💬</div><div class="stat-value">{{ stats.total_chats }}</div><div class="stat-label">Chatbot Conversations</div></div>
+  <div class="stat-card"><div class="stat-icon">🚨</div><div class="stat-value">{{ stats.emergency_alerts }}</div><div class="stat-label">Emergency Alerts Flagged</div></div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <div class="card-header"><h3>Recent Appointments</h3><a href="{{ url_for('admin.appointments_list') }}" class="btn btn-outline btn-sm">View All</a></div>
+    <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for a in recent_appointments %}
+        <tr>
+          <td>{{ a.patient_name }}</td>
+          <td>{{ a.doctor_name }}</td>
+          <td>{{ a.appointment_date }}</td>
+          <td><span class="badge badge-{{ a.status }}">{{ a.status }}</span></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="empty-state">No appointments yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Agent Usage Breakdown</h3></div>
+    {% if intent_breakdown %}
+    <ul>
+    {% for row in intent_breakdown %}
+      <li class="flex-between" style="padding:9px 0;border-bottom:1px solid var(--border);font-size:13.5px;">
+        <span>{{ row.agent }}</span>
+        <span class="flex gap-2" style="align-items:center;">
+          <div class="confidence-bar" style="width:120px;">
+            <div class="confidence-bar-fill" style="width:{{ (row.c / intent_breakdown[0].c * 100) if intent_breakdown[0].c else 0 }}%;"></div>
+          </div>
+          <b>{{ row.c }}</b>
+        </span>
+      </li>
+    {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state"><p>No chatbot activity logged yet.</p></div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-header"><h3>Recent Chatbot Conversations</h3></div>
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>Time</th><th>User Message</th><th>Intent</th><th>Agent</th><th>Sentiment</th><th>Confidence</th></tr></thead>
+    <tbody>
+    {% for c in recent_chats %}
+      <tr>
+        <td style="white-space:nowrap;">{{ c.created_at.split(' ')[1] if c.created_at else '' }}</td>
+        <td style="max-width:260px;">{{ c.user_message }}</td>
+        <td>{{ c.intent }}</td>
+        <td>{{ c.agent }}</td>
+        <td>{{ c.sentiment }}</td>
+        <td>{{ '%.1f' | format(c.confidence) }}%</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6" class="empty-state">No conversations logged yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

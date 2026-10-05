@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediAssist AI - Multi-Agent Hospital Assistant</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="landing">
+  <nav class="landing-nav">
+    <div class="brand"><span>⚕</span> MediAssist <b>AI</b></div>
+    <div class="actions">
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,0.5);">Login</a>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-accent">Get Started</a>
+    </div>
+  </nav>
+
+  <section class="landing-hero">
+    <h1>Your AI-Powered Hospital Assistant</h1>
+    <p>MediAssist AI uses a multi-agent architecture and NLP to understand your questions
+       and instantly connect you with the right information — doctors, appointments,
+       lab reports, pharmacy, billing and more — day or night.</p>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-accent" style="padding:13px 28px;font-size:15px;">Create Free Account</a>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,0.6);padding:13px 24px;font-size:15px;">I already have an account</a>
+  </section>
+
+  <section class="landing-features">
+    <h2 class="section-title" style="text-align:center;">10 Specialized Agents, One Smart Assistant</h2>
+    <p class="section-sub" style="text-align:center;">A central Orchestrator Agent reads every message with NLP and routes it to the right specialist automatically.</p>
+    <div class="agents-grid">
+      <div class="agent-pill">🩺 Doctor Agent</div>
+      <div class="agent-pill">📅 Appointment Agent</div>
+      <div class="agent-pill">🏢 Department Agent</div>
+      <div class="agent-pill">🧪 Lab Agent</div>
+      <div class="agent-pill">💊 Pharmacy Agent</div>
+      <div class="agent-pill">👤 Patient Agent</div>
+      <div class="agent-pill">💳 Billing Agent</div>
+      <div class="agent-pill">🔎 Triage Agent</div>
+      <div class="agent-pill">🚨 Emergency Agent</div>
+      <div class="agent-pill">❓ FAQ Agent</div>
+    </div>
+
+    <h2 class="section-title mt-3" style="text-align:center;margin-top:50px;">Built With Real NLP</h2>
+    <p class="section-sub" style="text-align:center;">Tokenization · Stopword Removal · Stemming · Lemmatization · POS Tagging · NER · TF-IDF Intent Classification · Sentiment Analysis · Conversation Context</p>
+    <div class="grid grid-3 mt-3">
+      <div class="feature-card"><div class="feature-icon">🧠</div><h3>Understands Natural Language</h3><p class="text-muted">Ask questions the way you'd ask a person — "I need a heart doctor" or "book Arun tomorrow" just works.</p></div>
+      <div class="feature-card"><div class="feature-icon">🔗</div><h3>Remembers Context</h3><p class="text-muted">The chatbot tracks the conversation so you don't have to repeat yourself across turns.</p></div>
+      <div class="feature-card"><div class="feature-icon">🚨</div><h3>Emergency-Aware</h3><p class="text-muted">Serious symptoms are instantly flagged and routed to clear emergency guidance.</p></div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Emergency{% endblock %}
+{% block page_title %}Emergency Care{% endblock %}
+{% block content %}
+<div class="card emergency-page">
+  <div class="card-header">
+    <div>
+      <h1 class="section-title">🚨 Emergency Care</h1>
+      <p class="section-sub">Immediate medical support is available at the hospital.</p>
+    </div>
+    <a href="{{ url_for('chatbot.chatbot_page') }}" class="btn btn-danger">Open Chatbot</a>
+  </div>
+
+  <div class="alert emergency-hero">
+    <div class="emergency-hero-icon">🚨</div>
+    <div>
+      <h2>Medical emergency detected</h2>
+      <p>If you or someone else is having chest pain, difficulty breathing, severe bleeding, fainting, an accident, or another life-threatening issue, seek urgent help now.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card emergency-card">
+      <div class="emergency-card-title">📞 Emergency Helpline</div>
+      <div class="emergency-card-value">{{ helpline }}</div>
+      <a class="btn btn-danger btn-block mt-2" href="tel:{{ helpline|replace('-', '')|replace(' ', '') }}">Call Helpline</a>
+    </div>
+
+    <div class="card emergency-card">
+      <div class="emergency-card-title">📍 Emergency Department</div>
+      <div class="emergency-card-value">{{ location }}</div>
+      <div class="hint mt-2">Ground Floor, Main Entrance</div>
+    </div>
+  </div>
+
+  <div class="card emergency-actions mt-3">
+    <h3>What to do now</h3>
+    <ul class="emergency-steps">
+      <li>1. Call emergency services or our 24x7 helpline immediately.</li>
+      <li>2. Go directly to Emergency Medicine at the hospital entrance.</li>
+      <li>3. If you are with someone unconscious or injured, keep them safe and stay with them until help arrives.</li>
+    </ul>
+    <a href="{{ url_for('chatbot.chatbot_page') }}" class="btn btn-outline mt-2">Return to Chatbot</a>
+  </div>
+</div>
+{% endblock %}

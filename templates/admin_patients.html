@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Patients{% endblock %}
+{% block page_title %}All Patients{% endblock %}
+{% block content %}
+<div class="card">
+<div class="table-wrap">
+<table class="data-table">
+  <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Gender</th><th>Blood Group</th><th>DOB</th></tr></thead>
+  <tbody>
+  {% for p in patients %}
+    <tr>
+      <td><b>{{ p.full_name }}</b></td>
+      <td>{{ p.email }}</td>
+      <td>{{ p.phone or '—' }}</td>
+      <td>{{ p.gender or '—' }}</td>
+      <td>{{ p.blood_group or '—' }}</td>
+      <td>{{ p.date_of_birth or '—' }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="6" class="empty-state">No patients registered yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</div>
+{% endblock %}

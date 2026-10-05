@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}Patient Medical History{% endblock %}
+{% block page_title %}Patient Medical History{% endblock %}
+{% block content %}
+<div class="card mb-3" style="background: linear-gradient(135deg, #f0fdfa, #e0f2fe); border: 1px solid #cbd5e1;">
+  <div class="card-header" style="border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 12px;">
+    <h3 style="color: var(--primary-dark); display: flex; align-items: center; gap: 8px;">
+      <span>🔍</span> Patient History Lookup
+    </h3>
+    <span class="text-muted" style="font-size: 13px;">Select or search any patient to view their complete past medical history</span>
+  </div>
+  <form method="GET" action="{{ url_for('patient.medical_history') }}" class="filters-bar" style="margin-top: 14px; gap: 12px; align-items: center;">
+    <div style="flex: 1; min-width: 220px;">
+      <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">SELECT PATIENT:</label>
+      <select name="patient_id" class="form-control" onchange="this.form.submit()">
+        {% for p in all_patients %}
+          <option value="{{ p.patient_id }}" {% if selected_patient_id == p.patient_id %}selected{% endif %}>
+            Patient #{{ p.patient_id }} - {{ p.full_name }} ({{ p.phone or p.email }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="flex: 1; min-width: 220px;">
+      <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">SEARCH BY NAME / ID / PHONE:</label>
+      <input type="text" name="q" value="{{ search_query }}" placeholder="e.g. John Doe, 1, or 98765..." class="form-control">
+    </div>
+    <div style="margin-top: 18px;">
+      <button type="submit" class="btn btn-primary">Search Patient</button>
+    </div>
+  </form>
+</div>
+
+{% if patient %}
+<div class="card mb-3" style="border-left: 5px solid var(--primary);">
+  <div class="flex-between" style="flex-wrap: wrap; gap: 12px;">
+    <div>
+      <span class="badge badge-completed" style="font-size: 13px;">Patient ID: #{{ patient.patient_id }}</span>
+      <h2 style="margin: 6px 0 2px; color: var(--text);">{{ patient.full_name }}</h2>
+      <p class="text-muted" style="margin: 0; font-size: 13.5px;">
+        📧 {{ patient.email or 'N/A' }} | 📞 {{ patient.phone or 'N/A' }} | 📍 {{ patient.address or 'N/A' }}
+      </p>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <a href="{{ url_for('patient.generate_report', patient_id=patient.patient_id) }}" target="_blank" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0d9488); border: none; font-weight: 700;">
+        📄 Generate Full Patient Report
+      </a>
+      <span class="badge badge-rescheduled" style="font-size: 13px;">User: @{{ patient.username }}</span>
+    </div>
+  </div>
+
+  <div class="grid grid-4 mt-3" style="gap: 12px;">
+    <div class="stat-card" style="padding: 14px;">
+      <div class="stat-icon">🩸</div>
+      <div class="stat-value" style="font-size: 20px;">{{ patient.blood_group or '—' }}</div>
+      <div class="stat-label">Blood Group</div>
+    </div>
+    <div class="stat-card" style="padding: 14px;">
+      <div class="stat-icon">🎂</div>
+      <div class="stat-value" style="font-size: 18px;">{{ patient.date_of_birth or '—' }}</div>
+      <div class="stat-label">Date of Birth</div>
+    </div>
+    <div class="stat-card" style="padding: 14px;">
+      <div class="stat-icon">🚻</div>
+      <div class="stat-value" style="font-size: 18px;">{{ patient.gender or '—' }}</div>
+      <div class="stat-label">Gender</div>
+    </div>
+    <div class="stat-card" style="padding: 14px;">
+      <div class="stat-icon">📞</div>
+      <div class="stat-value" style="font-size: 15px;">{{ patient.emergency_contact or '—' }}</div>
+      <div class="stat-label">Emergency Contact</div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+    <h3>🩺 Previous Visits & Complaints / Diagnosis Records</h3>
+  </div>
+  {% if appointments %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Doctor</th>
+            <th>Department</th>
+            <th>Complaint / Diagnosis</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in appointments %}
+            <tr>
+              <td><b>{{ a.appointment_date }}</b> at {{ a.appointment_time }}</td>
+              <td><b>{{ a.doctor_name }}</b><br><small class="text-muted">{{ a.specialization }}</small></td>
+              <td>{{ a.department_name }}</td>
+              <td><span style="color: #0f766e; font-weight: 600;">{{ a.reason or 'Routine Checkup' }}</span></td>
+              <td><span class="badge badge-{{ a.status }}">{{ a.status }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted" style="padding: 10px 0;">No previous visits recorded for this patient.</p>
+  {% endif %}
+</div>
+
+<div class="grid grid-2 mb-3">
+  <div class="card">
+    <div class="card-header">
+      <h3>📋 Prescriptions & Treatment Regimen</h3>
+    </div>
+    {% if prescriptions %}
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        {% for p in prescriptions %}
+          <div style="background: #f8fafc; border-left: 3px solid var(--primary); padding: 12px 14px; border-radius: 8px;">
+            <div class="flex-between">
+              <b>Issued by {{ p.doctor_name }}</b>
+              <span class="text-muted" style="font-size: 12px;">{{ p.date_issued }}</span>
+            </div>
+            <p style="margin: 6px 0 4px; font-weight: 600; color: #0284c7;">
+              💊 Medicines: {{ p.medicines }}
+            </p>
+            {% if p.notes %}
+              <p class="text-muted" style="margin: 0; font-size: 13px;">📝 Notes: {{ p.notes }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted">No prescriptions recorded for this patient.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>🧪 Lab Reports & Test History</h3>
+    </div>
+    {% if lab_reports %}
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        {% for r in lab_reports %}
+          <div style="background: #f8fafc; border-left: 3px solid var(--accent); padding: 12px 14px; border-radius: 8px;">
+            <div class="flex-between">
+              <b>{{ r.test_name }}</b>
+              <span class="badge badge-{{ r.status }}">{{ r.status }}</span>
+            </div>
+            <p class="text-muted" style="margin: 4px 0; font-size: 12.5px;">Booked on: {{ r.booked_date }}</p>
+            {% if r.result_summary %}
+              <p style="margin: 4px 0 0; font-size: 13px; color: var(--text);">
+                📊 <b>Result Summary:</b> {{ r.result_summary }}
+              </p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted">No lab reports recorded for this patient.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+    <h3>⏱ Complete Combined Medical History Timeline</h3>
+  </div>
+  {% if timeline %}
+    <div class="timeline">
+    {% for item in timeline %}
+      <div class="timeline-item timeline-{{ item.type }}">
+        <div class="timeline-icon">{{ item.icon }}</div>
+        <div class="timeline-body">
+          <div class="flex-between">
+            <b>{{ item.title }}</b>
+            <span class="text-muted" style="font-size:12.5px;">{{ item.date }}</span>
+          </div>
+          <p class="text-muted" style="margin:4px 0 0;font-size:13.5px;">{{ item.detail }}</p>
+          {% if item.status %}
+            <span class="badge badge-{{ item.status }} mt-1">{{ item.status }}</span>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="icon">🗂</div>
+      <p>No medical history on record for this patient yet.</p>
+    </div>
+  {% endif %}
+</div>
+{% else %}
+<div class="empty-state card">
+  <div class="icon">🧑‍⚕️</div>
+  <p>No patient selected. Please use the search bar above to select a patient.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<style>
+.timeline { position: relative; padding-left: 6px; }
+.timeline-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.timeline-item:last-child { border-bottom: none; }
+.timeline-icon { font-size: 20px; line-height: 1; flex-shrink: 0; width: 32px; text-align: center; }
+.timeline-body { flex: 1; min-width: 0; }
+</style>
+{% endblock %}

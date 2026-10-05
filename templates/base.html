@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}MediAssist AI{% endblock %} | MediAssist AI</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">⚕</span>
+      <span class="brand-text">MediAssist <b>AI</b></span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('main.dashboard') }}" class="nav-item {{ 'active' if request.endpoint=='main.dashboard' }}"><span>🏠</span> Dashboard</a>
+      <a href="{{ url_for('chatbot.chatbot_page') }}" class="nav-item {{ 'active' if request.endpoint=='chatbot.chatbot_page' }}"><span>💬</span> Chatbot</a>
+      <a href="{{ url_for('doctors.list_doctors') }}" class="nav-item {{ 'active' if request.endpoint=='doctors.list_doctors' }}"><span>🩺</span> Doctors</a>
+      <a href="{{ url_for('departments.list_departments') }}" class="nav-item {{ 'active' if request.endpoint=='departments.list_departments' }}"><span>🏢</span> Departments</a>
+      <a href="{{ url_for('appointments.list_appointments') }}" class="nav-item {{ 'active' if request.endpoint=='appointments.list_appointments' }}"><span>📅</span> Appointments</a>
+      <a href="{{ url_for('main.emergency_page') }}" class="nav-item {{ 'active' if request.endpoint=='main.emergency_page' }} emergency-nav"><span>🚨</span> Emergency</a>
+      <a href="{{ url_for('patient.medical_history') }}" class="nav-item {{ 'active' if request.endpoint=='patient.medical_history' }}"><span>🗂</span> Medical History</a>
+      <a href="{{ url_for('lab.lab_reports') }}" class="nav-item {{ 'active' if request.endpoint=='lab.lab_reports' }}"><span>🧪</span> Lab Reports</a>
+      <a href="{{ url_for('pharmacy.prescriptions_page') }}" class="nav-item {{ 'active' if request.endpoint=='pharmacy.prescriptions_page' }}"><span>📋</span> Prescriptions</a>
+      <a href="{{ url_for('pharmacy.pharmacy_page') }}" class="nav-item {{ 'active' if request.endpoint=='pharmacy.pharmacy_page' }}"><span>💊</span> Pharmacy</a>
+      <a href="{{ url_for('billing.bills_page') }}" class="nav-item {{ 'active' if request.endpoint=='billing.bills_page' }}"><span>💳</span> Bills</a>
+      <a href="{{ url_for('patient.profile') }}" class="nav-item {{ 'active' if request.endpoint=='patient.profile' }}"><span>👤</span> Profile</a>
+      <a href="{{ url_for('nlp_demo.nlp_demo_page') }}" class="nav-item {{ 'active' if request.endpoint=='nlp_demo.nlp_demo_page' }}"><span>🧠</span> NLP Demo</a>
+      {% if current_user and current_user.role == 'admin' %}
+      <div class="nav-divider">Admin</div>
+      <a href="{{ url_for('admin.dashboard') }}" class="nav-item {{ 'active' if request.endpoint=='admin.dashboard' }}"><span>📊</span> Admin Dashboard</a>
+      <a href="{{ url_for('admin.patients_list') }}" class="nav-item {{ 'active' if request.endpoint=='admin.patients_list' }}"><span>🧑‍🤝‍🧑</span> Patients</a>
+      <a href="{{ url_for('admin.appointments_list') }}" class="nav-item {{ 'active' if request.endpoint=='admin.appointments_list' }}"><span>🗂</span> All Appointments</a>
+      {% endif %}
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('auth.logout') }}" class="nav-item logout"><span>🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu">☰</button>
+      <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+      <div class="topbar-user">
+        {% if current_user %}
+        <span class="user-avatar">{{ current_user.full_name[0] | upper }}</span>
+        <span class="user-name">{{ current_user.full_name }}</span>
+        {% endif %}
+      </div>
+    </header>
+
+    <main class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message | safe }}</div>
+          {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

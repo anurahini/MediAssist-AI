@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Prescriptions{% endblock %}
+{% block page_title %}Prescriptions{% endblock %}
+{% block content %}
+<p class="section-sub">Your prescription history, issued by your doctors.</p>
+
+{% if prescriptions %}
+<div class="grid grid-2">
+  {% for rx in prescriptions %}
+  <div class="card">
+    <div class="card-header">
+      <h3>{{ rx.doctor_name }}</h3>
+      <span class="text-muted" style="font-size:12.5px;">{{ rx.date_issued }}</span>
+    </div>
+    <p class="text-muted" style="font-size:13px;">{{ rx.specialization }}</p>
+    <h4 style="font-size:13px;text-transform:uppercase;color:var(--text-muted);margin:12px 0 8px;">Medicines</h4>
+    <div>
+      {% for m in rx.medicines.split(',') %}
+        <span class="entity-tag">{{ m.strip() }}</span>
+      {% endfor %}
+    </div>
+    {% if rx.notes %}
+    <h4 style="font-size:13px;text-transform:uppercase;color:var(--text-muted);margin:12px 0 6px;">Doctor's Notes</h4>
+    <p style="font-size:13.5px;">{{ rx.notes }}</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state"><div class="icon">📋</div><p>No prescriptions on record yet.</p></div>
+{% endif %}
+{% endblock %}
